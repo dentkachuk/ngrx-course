@@ -17,11 +17,16 @@ import { StoreModule } from '@ngrx/store';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { AuthGuard } from 'app/auth/auth.guard';
+import { EffectsModule } from '@ngrx/effects';
+import { RouterState, StoreRouterConnectingModule } from '@ngrx/router-store';
+import { metaReducers, reducers } from './reducers';
 
 
 const routes: Routes = [
   {
     path: 'courses',
+    canActivate: [ AuthGuard ],
     loadChildren: () => import('./courses/courses.module').then(m => m.CoursesModule)
   },
   {
@@ -47,8 +52,16 @@ const routes: Routes = [
     MatListModule,
     MatToolbarModule,
     AuthModule.forRoot(),
-    StoreModule.forRoot({}, {}),
-    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: !isDevMode()})
+    StoreModule.forRoot(reducers, {
+      metaReducers,
+      runtimeChecks: {strictStateImmutability: true}
+    }),
+    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: !isDevMode()}),
+    EffectsModule.forRoot([]),
+    StoreRouterConnectingModule.forRoot({
+      stateKey: 'router',
+      routerState: RouterState.Minimal
+    })
   ],
   bootstrap: [ AppComponent ]
 })
